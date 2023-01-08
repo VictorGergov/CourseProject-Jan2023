@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <iterator>
+#include <map>
 using namespace std;
 
 class CTVSet
@@ -11,8 +12,11 @@ private:
     string m_strProducer;
     int m_iSize;
 public:
+    CTVSet() = default;                // default constructor
+    CTVSet(const CTVSet& other) = default; // copy constructor
+    CTVSet& operator=(const CTVSet& other) = default; // copy assignment 
     // 1.1 default constr.
-    CTVSet() 
+    /*CTVSet()
     {
         m_strProducer = "n/a";
         m_iSize = 0;
@@ -22,7 +26,7 @@ public:
         m_strProducer = tv.m_strProducer;
        // m_strProducer = tv.m_iSize;
         m_iSize = tv.m_iSize;
-    }
+    }*/
     // 1.3 copy constr.
     CTVSet(const string& strProducer, int iSize) 
     {
@@ -30,12 +34,12 @@ public:
         m_iSize = iSize;
     }
     // 2.1 Functions
-    int& GetSize() 
+    int GetSize() 
     {
         return m_iSize;
     }
 
-    string& GetProducer() 
+    string GetProducer() 
     {
         return m_strProducer;
     }
@@ -43,20 +47,20 @@ public:
     // 2.2
     void output(ostream& toStream) 
     {
-        toStream << "company " << GetProducer() << "size " << GetSize() << endl;
+        toStream << "company " << GetProducer() << ", size " << GetSize() << endl;
     }
 
     // 2.3
     void input(istream& fromStream)
     {
-        fromStream >> GetProducer() >> GetSize();
+        fromStream >> m_strProducer >> m_iSize;
     }
     
     // 3.1 operator
-    void operator=(CTVSet& tv)
+    /*void operator=(CTVSet& tv)
     {
         m_iSize = tv.m_iSize;
-    }
+    }*/
 
     bool operator<(CTVSet& tv)
     {
@@ -70,7 +74,7 @@ public:
         }
     }
 
-    bool operator==(CTVSet& tv)
+    bool operator==(const CTVSet& tv) const
     {
         if (m_iSize == tv.m_iSize)
         {
@@ -82,20 +86,24 @@ public:
         }
     }
 
+    bool operator!=(CTVSet& tv) {
+        return m_iSize != tv.m_iSize;
+    }
+
     friend ostream& operator<<(ostream&, const CTVSet&);
 
     friend istream& operator>>(istream&, const CTVSet&);
 };
 
-ostream& operator<<(ostream& stream, const CTVSet&)
+ostream& operator<<(ostream& stream, CTVSet& tv)
 {
-    CTVSet tv;
+    //CTVSet tv;
     tv.output(stream);
     return stream;
 }
-istream& operator>> (istream& stream, const CTVSet&)
+istream& operator>> (istream& stream, CTVSet& tv)
 {
-    CTVSet tv;
+    // CTVSet tv;
     tv.input(stream);
     return stream;
 }
@@ -109,14 +117,17 @@ public:
     {
         m_vSales = tvShop.m_vSales;
     }
+
+    CTVSetShop(const vector<CTVSet>& tvs)
+    {
+        m_vSales = tvs;
+    }
+
     CTVSetShop()
     {
 
     }
-    CTVSetShop(const m_vSales)
-    {
-        m_vSales = vSales;
-    }
+    
 
     // III.
     void WriteTo(ostream& stream)
@@ -136,36 +147,63 @@ public:
 
     string maxSalesByProducer()
     {
-        int max = 0;
-        string mostSoldProducer = m_vSales[0].GetProducer();
-        for (int i = 0; i < m_vSales.size(); i++)
-        {
-            int producerCount = (int)count(m_vSales.begin(), m_vSales.end(), m_vSales[i]);
-                if (producerCount > max)
-                {
-                    max = producerCount;
-                    mostSoldProducer = m_vSales[i].GetProducer();
-                }
+        map<string, int> salesByProducer;
+        for (CTVSet tv : m_vSales) {
+            if (salesByProducer.find(tv.GetProducer()) == salesByProducer.end()) {
+                // doesnt exist in map
+                salesByProducer.insert({ tv.GetProducer(), 1 });
+            }
+            else {
+                salesByProducer[tv.GetProducer()]++;
+            }
         }
 
-        cout << mostSoldProducer << " " << max;
+        int maxSales = 0;
+        string maxProducer = "";
+
+        map<string, int>::iterator it;
+
+        for (it = salesByProducer.begin(); it != salesByProducer.end(); it++)
+        {
+            if (it->second > maxSales) {
+                maxSales = it->second;
+                maxProducer = it->first;
+            }
+        }
+
+        return maxProducer + " " + to_string(maxSales);
+
+      
     }
     // I I. 3
     string maxSalesBySize()
     {
-        int max = 0;
-        int mostSoldSize = m_vSales[0].GetSize();
-        for (int i = 0; i < m_vSales.size(); i++)
-        {
-            int sizeCount = (int)count(m_vSales.begin(), m_vSales.end(), m_vSales[i]);
-            if (sizeCount > max)
-            {
-                max = sizeCount;
-                mostSoldSize = m_vSales[i].GetSize();
+        map<int, int> salesBySize;
+        for (CTVSet tv : m_vSales) {
+            if (salesBySize.find(tv.GetSize()) == salesBySize.end()) {
+                // doesnt exist in map
+                salesBySize.insert({ tv.GetSize(), 1 });
+            }
+            else {
+                salesBySize[tv.GetSize()]++;
             }
         }
 
-        cout << mostSoldSize << " " << max;
+        int maxSales = 0;
+        int maxSize = -1;
+
+        map<int, int>::iterator it;
+
+        for (it = salesBySize.begin(); it != salesBySize.end(); it++)
+        {
+            if (it->second > maxSales) {
+                maxSales = it->second;
+                maxSize = it->first;
+            }
+        }
+
+        return to_string(maxSize) + " " + to_string(maxSales);
+        
     }
 
 };
@@ -174,13 +212,27 @@ public:
 // I I I.
 int main()
 {
-    CTVSetShop tvShop;
-    CTVSet tv;
 
-    tvShop.maxSalesByProducer();
-    tvShop.maxSalesBySize();
+    cout << "How many tvs?: ";
+    vector<CTVSet> tvs;
+    int n;
+    cin >> n;
+    for (size_t i = 0; i < n; i++)
+    {
+        CTVSet tv;
+        cout << "Enter {producer size}: ";
+        cin >> tv;
+        tvs.push_back(tv);
+    }
+    
+    CTVSetShop* tvShop = new CTVSetShop(tvs);
 
-    tv.GetProducer();
-    tv.GetSize();
+    cout << "Maximum sales by producer:" << endl;
+    cout << tvShop->maxSalesByProducer() << endl;
+
+    cout << "Maximum sales by size: " << endl;
+    cout << tvShop->maxSalesBySize() << endl;
+
+  
 }
 
