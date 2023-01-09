@@ -12,22 +12,13 @@ private:
     string m_strProducer;
     int m_iSize;
 public:
-    CTVSet() = default;                // default constructor
-    CTVSet(const CTVSet& other) = default; // copy constructor
-    CTVSet& operator=(const CTVSet& other) = default; // copy assignment 
     // 1.1 default constr.
-    /*CTVSet()
-    {
-        m_strProducer = "n/a";
-        m_iSize = 0;
-    }
-    // 1.2 explicit constr.
-    CTVSet(const CTVSet& tv) {
-        m_strProducer = tv.m_strProducer;
-       // m_strProducer = tv.m_iSize;
-        m_iSize = tv.m_iSize;
-    }*/
-    // 1.3 copy constr.
+    CTVSet() = default;                // default constructor
+    // 1.3 copy constructor
+    CTVSet(const CTVSet& other) = default; // copy constructor
+    // 3.1.
+    CTVSet& operator=(const CTVSet& other) = default; // copy assignment 
+    // 1.2 explicid constr.
     CTVSet(const string& strProducer, int iSize) 
     {
         m_strProducer = strProducer;
@@ -57,21 +48,15 @@ public:
     }
     
     // 3.1 operator
-    /*void operator=(CTVSet& tv)
-    {
-        m_iSize = tv.m_iSize;
-    }*/
-
+   
     bool operator<(CTVSet& tv)
     {
-        if (m_iSize < tv.m_iSize)
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return m_iSize < tv.m_iSize;
+    }
+
+    bool operator>(CTVSet& tv)
+    {
+        return m_iSize > tv.m_iSize;
     }
 
     bool operator==(const CTVSet& tv) const
@@ -97,13 +82,11 @@ public:
 
 ostream& operator<<(ostream& stream, CTVSet& tv)
 {
-    //CTVSet tv;
     tv.output(stream);
     return stream;
 }
 istream& operator>> (istream& stream, CTVSet& tv)
 {
-    // CTVSet tv;
     tv.input(stream);
     return stream;
 }
@@ -132,17 +115,20 @@ public:
     // III.
     void WriteTo(ostream& stream)
     {
-        copy(m_vSales.begin(), m_vSales.end(), ostream_iterator<CTVSet>(stream, "\n"));
+        for (CTVSet tv : m_vSales) {
+            tv.output(stream);
+        }
     }
 
-    void ReadIn(ifstream& stream)
+    void ReadIn(istream& stream, int n)
     {
-        if (m_vSales.size())
+        for (size_t i = 0; i < n; i++)
         {
-            m_vSales.clear();
+            CTVSet tv;
+            cout << "Enter {producer size}: ";
+            stream >> tv;
+            m_vSales.push_back(tv);
         }
-
-        copy(istream_iterator<CTVSet>(stream), istream_iterator<CTVSet>(), back_inserter(m_vSales));
     }
 
     string maxSalesByProducer()
@@ -214,18 +200,12 @@ int main()
 {
 
     cout << "How many tvs?: ";
-    vector<CTVSet> tvs;
     int n;
     cin >> n;
-    for (size_t i = 0; i < n; i++)
-    {
-        CTVSet tv;
-        cout << "Enter {producer size}: ";
-        cin >> tv;
-        tvs.push_back(tv);
-    }
     
-    CTVSetShop* tvShop = new CTVSetShop(tvs);
+    CTVSetShop* tvShop = new CTVSetShop();
+
+    tvShop->ReadIn(cin, n);
 
     cout << "Maximum sales by producer:" << endl;
     cout << tvShop->maxSalesByProducer() << endl;
@@ -233,6 +213,6 @@ int main()
     cout << "Maximum sales by size: " << endl;
     cout << tvShop->maxSalesBySize() << endl;
 
-  
+    cout << "List of all TV Sets: " << endl;
+    tvShop->WriteTo(cout);  
 }
-
